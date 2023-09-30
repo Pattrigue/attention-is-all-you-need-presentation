@@ -1,0 +1,624 @@
+---
+title: "Attention Is All<br>You Need"
+subtitle: "by @AttentionIsAllYouNeed <br>Illustations and animations by Michael Phi [@phi_illustrated_2020]<br><br>Research Paper<br>Natural Language Processing"
+author: "Patrick Frostholm Østergaard"
+date: 2023-09-29
+date-format: "D MMM YYYY"
+slide-number: true
+bibliography: static/references.bib
+format:
+    revealjs:
+        transition: slide
+        theme: [dark, custom.scss]
+---
+
+
+# Introduction
+- Paper introduces transformer architecture
+    - Relies solely on attention!
+
+::: {.fragment}
+- Bypasses limitations of RNNs and LSTMs
+    - Lack of parallelization
+    - Long-range dependencies
+:::
+::: {.fragment}
+- Basis for BERT, GPT, etc.
+:::
+
+::: {.notes}
+This paper introduced the ***Transformer***, an innovative deep learning architecture that exclusively uses attention mechanisms, eliminating the need for recurrent layers.
+
+By doing this, the Transformer effectively bypasses issues with earlier models like RNNs and LSTMs, such as lack of ***parallelization*** and difficulty of learning ***long-range dependencies***.
+
+This groundbreaking architecture later became the foundation for renowned models such as BERT and GPT.
+:::
+
+# Plan {.smaller}
+- Transformer overview
+    - Input embedding
+    - Positional encoding
+    - Self-Attention
+    - Encoder
+    - Decoder
+
+::: {.fragment}
+- Results
+:::
+::: {.fragment}
+- Strong & Weak points
+- Take-home message
+:::
+
+::: {.notes}
+Here's how we're going to proceed today:
+
+- I'll walk you through a general overview of the Transformer architecture introduced in the paper. We will discuss input embedding, positional encoding, self-attention, and the encoder and decoder modules.
+- Then, we'll look at the results of the paper.
+- Finally, we'll discuss some strong and weak points of the paper and the Transformer model, and wrap up with a take-home message.
+:::
+
+## Transformer
+![](static/transformer.png){style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+![](static/transformer_input.png){.fragment style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+
+::: {.notes}
+Transformer architecture.
+
+First talk about input embedding, which is highlighted here.
+:::
+
+## Input Embeddings {.smaller}
+- Example: ***Chatbot***
+    - Input: *"Hi how are you"*
+    - Transformer Output: *"I am fine"*
+
+![](static/input_embedding.png){width=60% style="display: block; margin: auto;"}
+
+::: {.notes}
+Example with a chatbot.
+
+- Our input could be *"Hi how are you"*,
+- The Transformer could output *"I am fine"*.
+
+First, the input is fed into a ***word embedding vector***.
+
+We can think of this as a ***lookup table*** that maps each word to a learned vector representation of each word.
+:::
+
+## Positional Encoding {.smaller}
+- Transformer has no recurrence
+- Need to encode position of words to model sequence
+    - "Hi how are you" $\neq$ "are you Hi how"
+
+::: {.fragment}
+- Could talk about this for the rest of the presentation, but let's keep it simple...
+:::
+
+![](static/positional_encoding.png){fig-align="center"}
+
+::: {.notes}
+Next, we need to add ***positional information*** to the input.
+
+By adding positional encoding to the input embeddings before they enter the encoder, we provide the Transformer with information about the position of words in a sequence.
+
+This step effectively removes the need for any recurrence mechanism.
+
+We could spend the whole presentation talking about positional encoding, but we'll leave it at that for now and move on to the encoder.
+:::
+
+## Encoder {transition="fade-out"}
+![](static/transformer_input.png){style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+![](static/transformer_encoder_no_input.png){.fragment style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+
+::: {.notes}
+So far we've talked about the input embedding and positional encoding, which is highlighted here.
+
+Now, let's look at the encoder, which is this part of the Transformer.
+:::
+
+## Encoder {transition="fade-in"}
+![](static/encoder.png){fig-align="center"}
+
+::: {.notes}
+Now that we have embedded our input sequence, we can feed it into the ***encoder***.
+
+This layer translates our sequence of words into a ***numerical representation*** that captures important features and relationships within the text.
+
+It contains ***2 sub-modules***:
+
+- the ***multi-headed attention***,
+- followed by a ***fully connected feed-forward network***.
+
+Each of the two sub-modules has a ***residual connection*** around it followed by a ***layer normalization*** step.
+:::
+
+## The Multi-Head Attention Module {.smaller}
+- Self-attention in parallel
+- Associate "you" with "how" and "are"
+- Sentence structure - question
+
+::: {.incremental}
+
+Given input sequence $X$ ("Hi how are you"), compute three vectors for each word:
+
+- $Q$: Query vector - which parts of input are most important to focus on
+- $K$: Key vector - determines which parts are most relevant to Query
+- $V$: Value vector - provides content from input corresponding to a matched Key for a given Query
+
+:::
+
+::: {.fragment}
+$$
+Q = XW^Q, \quad K = XW^K, \quad V = XW^V
+$$
+
+Note: All vectors derived from input sequence $X$!
+:::
+
+::: {.notes}
+First, let's talk about the ***multi-headed attention module***.
+
+This module applies a specific type of attention mechanism called ***self-attention***, multiple times in parallel, hence the name "multi-headed".
+
+With self-attention, the model can associate different words in the input sequence with each other to gain a better understanding of the ***context***.
+
+In our example, the model can learn to associate the word "you" with "how" and "are".
+
+This also makes it possible for the model to learn that words structured in this pattern are usually a ***question***, allowing it to respond appropriately.
+
+***
+
+Given an input sequence *X*, the multi-headed attention module computes three vectors from each input embedding: the ***query vector*** *Q*, the ***key vector*** *K*, and the ***value vector*** *V*.
+
+The *Q*, *K*, and *V* vectors represent different transformations of the input sequence.
+
+- Query (Q): Determines which parts of the input sequence are most important for the model to focus on.
+- Key (K): Used to determine which parts are most relevant to the Query.
+- Value (V): Provides the content or information from the input that corresponds to a matched Key for a given Query.
+
+Unlike general attention, these vectors are ***all derived from the same input sequence***, which is what make self-attention "self".
+
+This is shown in the equations for computing *Q*, *K*, and *V*.
+
+Here, *X* is the input sequence, and *W^Q^*, *W^K^*, and *W^V^* are learned ***weight matrices*** from training the model.
+:::
+
+## Self-Attention {.smaller}
+Using $Q$, $K$, and $V$ we can compute the self-attention:
+
+::: {.fragment}
+$$
+\text{Self-Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
+
+\
+where:
+
+- $Q, K, V$: Vectors representing Query, Key, and Value.
+- $d_k$: Dimension of the key and query vectors.
+
+\
+
+- Let's break down the formula...
+:::
+
+::: {.notes}
+Using these three vectors, we can compute the ***attention scores*** for each word in the input sequence.
+
+The ***Attention Mechanism*** used in the Transformer architecture is defined by this formula.
+
+where:
+
+- *Q, K, V*: Vectors representing Queries, Keys, and Values.
+- *d~k~*: Dimension of the key and query vectors.
+
+Let's break down the self-attention formula.
+:::
+
+## Dot Product of Query and Key {transition="slide-in none" .smaller}
+$$
+\text{Self-Attention}(Q, K, V) = \text{softmax}\left(\frac{\color{#abffd5}{QK^T}}{\sqrt{d_k}}\right)V
+$$
+
+::: {.r-stack}
+
+![](static/qkv_start.png){fig-align="center"}
+
+::: {.fragment}
+![](static/qkv.gif){fig-align="center"}
+:::
+
+:::
+
+::: {.notes}
+After feeding the query, key and value vector through a ***linear layer***, we compute the dot product of the query and key vectors to obtain a ***score matrix***.
+
+The score matrix helps decide how much attention each word should get from other words in the sentence.
+
+This score matrix could look something like ***this***.
+:::
+
+## Dot Product of Query and Key {transition="fade" .smaller}
+$$
+\text{Self-Attention}(Q, K, V) = \text{softmax}\left(\frac{\color{#F4AEA1}{QK^T}}{\sqrt{d_k}}\right)V
+$$
+
+![](static/score_matrix.png){fig-align="center"}
+
+::: {.notes}
+Each word is given a score that indicates how related it is to every other word.
+
+The ***higher the score***, the more attention that word receives.
+:::
+
+## Scale Down the Attention Scores {transition="fade" .smaller}
+$$
+\text{Self-Attention}(Q, K, V) = \text{softmax}\left(\frac{\color{#F4AEA1}{QK^T}}{\color{#49BDC6}{\sqrt{d_k}}}\right)V
+$$
+
+- Scale down the attention scores by $\sqrt{d_k}$
+- More stable gradients
+
+![](static/scaling_scores.png){fig-align="center"}
+
+::: {.notes}
+The scores are then scaled down by dividing by the ***square root of the dimension of the query and key*** *d~k~*.
+
+This gives us more ***stable gradients***, as multiplying values can have exploding effects.
+:::
+
+## Softmax {transition="fade" .smaller}
+$$
+\text{Self-Attention}(Q, K, V) = \color{#AAAFDB}{\text{softmax}}\left(\frac{\color{#F4AEA1}{QK^T}}{\color{#49BDC6}{\sqrt{d_k}}}\right)V
+$$
+
+- Convert scores to probabilities (sum to 1)
+- Higher scores amplified, lower scores suppressed
+
+![](static/scores_to_probabilities.png){fig-align="center"}
+
+::: {.notes}
+Next we apply a ***softmax function*** to obtain the attention weights.
+
+This gives us probability values between 0 and 1 that sum up to 1.
+
+By doing a softmax, the higher scores get ***amplified*** and the lower scores get ***lowered***.
+
+This way, the model can be more confident about which words to focus on.
+:::
+
+## Multiply Scores with Value vector {transition="fade" .smaller}
+$$
+\text{Self-Attention}(Q, K, V) = \color{#AAAFDB}{\text{softmax}}\left(\frac{\color{#F4AEA1}{QK^T}}{\color{#49BDC6}{\sqrt{d_k}}}\right)\color{#6BCAB3}{V}
+$$
+
+- Emphasizes important words by applying attention to word content
+- Produces contextually rich representations of input sequence
+
+\
+
+![](static/value.png){fig-align="center" height=10%}
+
+::: {.notes}
+After using softmax to determine which words are most important, these attention scores are multiplied by the ***value vector*** to get the final output.
+
+This emphasizes the important words by applying the softmax scores to the value vector.
+
+The result is a ***contextually rich representation*** of the input sequence that captures important features and relationships between words.
+:::
+
+## Self to Multi-Head Attention {.smaller}
+- Self-attention in parallel - split $Q$, $K$, and $V$ into $N$ vectors
+- Each self-attention process is called a "head"
+
+::: {.fragment}
+- Concatenate the outputs of the heads and multiply by linear layer $W^O$:
+
+$$
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_N)W^O
+$$
+
+:::
+
+![](static/qkv_split.gif){fig-align="center"}
+
+::: {.notes}
+Multi-headed attention in the Transformer splits the *Q*, *K*, and *V* vectors into *N* parts for parallel processing in ***self-attention heads***.
+
+The output of each head is then concatenated and fed into a linear layer to obtain the final output.
+
+The authors used ***8 attention heads***, and argued that this helped the model learn more complex relationships between words.
+:::
+
+## Residual Connections, Layer Normalization, & Feed-Forward {.smaller}
+
+::: {.r-stack}
+![](static/residual_static.png)
+
+::: {.fragment}
+![](static/residual1.gif)
+:::
+
+::: {.fragment}
+![](static/residual2.gif)
+:::
+
+:::
+
+::: {.notes}
+The output of the multi-headed attention module is added to the original positional input embedding - this is called a ***residual connection***.
+
+This is then normalized and then fed into a ***feed forward network***, which consists of two linear transformations with a ***ReLU activation*** in between.
+
+This is then added to the output of the first residual connection, and normalized again using ***layer normalization***.
+
+This gives us the final output of the encoder.
+
+You can actually stack the encoder layers on top of each other to get a ***deeper network***, which is what the authors did in the paper with six encoder layers.
+
+Each layer can learn different attention representations which can boost the ***predictive power*** of the model.
+:::
+
+## Decoder {transition="fade-out"}
+![](static/transformer_encoder.png){style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+![](static/transformer_decoder.png){.fragment style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+
+::: {.notes}
+So far we've talked about the encoder, which is this part of the Transformer.
+
+Now, let's look at the decoder, which is this part of the Transformer.
+:::
+
+## Decoder {transition="fade-in" .smaller}
+- Two main inputs:
+    - Output of encoder
+    - Sequence of tokens generated so far
+- Autoregressive - one token at a time
+- Generated tokens become part of the input for generating the next token
+
+![](static/autoregressive.gif){fig-align="center"}
+
+::: {.notes}
+The decoder's job is to ***generate text sequences***.
+
+The decoder receives two main inputs:
+
+- The output from the ***encoder***, which serves as a context for generating the output sequence.
+- A sequence of tokens generated so far, which starts with a special ***"start"*** token and is expanded as the decoding process moves forward.
+
+The decoder is ***autoregressive***, meaning it generates one token at a time in a sequential manner.
+
+Each newly generated token becomes part of the input for generating the next token.
+
+This iterative process continues until an ***"end"*** token is generated or a maximum sequence length is reached.
+:::
+
+## Masking {transition="slide-in fade-out"}
+![](static/transformer.png){style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+![](static/transformer_masked.png){.fragment style="display: block; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"}
+
+::: {.notes}
+Now let's talk about the first multi-head attention layer in the decoder, which is highlighted here.
+
+This specific multi-head attention layer is ***masked***, which means it has one slight difference from the other multi-head attention layers.
+:::
+
+## Masked Self-Attenton {transition="slide-in fade-out"}
+- Prevents decoder from "cheating" by looking ahead
+- Same as self-attention, but only uses previous tokens
+
+![](static/attention_mask.png){fig-align="center"}
+
+::: {.notes}
+Since the decoder is autoregressive, it should not have access to future tokens when predicting the next one.
+
+For example, when generating the third word in a sentence, the decoder should only have access to the first two words.
+
+To ensure this, the decoder uses a ***masking technique*** in which all tokens that come after the current one are masked out.
+
+:::
+
+## Masked Self-Attenton {transition="fade-in"}
+- Masked out tokens are set to $-\infty$ before softmax
+
+\
+
+
+![](static/attention_lookahead_mask.png){fig-align="center"}
+
+::: {.notes}
+This masking is done by setting the attention scores for these tokens to ***negative infinity*** by applying a look-ahead mask.
+
+By doing this, the softmax function outputs a score of 0 for these tokens, effectively masking them out.
+:::
+
+## Masked Self-Attenton {transition="fade-in slide-out"}
+- Masked out tokens are set to $-\infty$ before softmax
+- Softmax will output 0 for masked out tokens
+
+![](static/attention_softmax_mask.png){fig-align="center"}
+
+::: {.notes}
+
+This way, the model puts all its attention on the tokens that come ***before*** the current one, but not on the ones that come after it.
+
+This masking is the ***only difference*** - the decoder's masked self-attention layer is otherwise identical to the encoder's self-attention layer.
+:::
+
+## 2nd Multi-Head Attention + FFNN {.smaller transition="slide-in fade-out"}
+::: columns
+::: {.column width="40%"}
+
+![](static/transformer_second_multi-head.png)
+:::
+
+::: {.column width="60%"}
+
+- Input:
+    - $K, V$: Output of encoder
+    - $Q$: Output of previous decoder layer
+
+\
+
+- Allows decoder to focus on relevant parts of input sequence
+
+\
+
+- Align target sequence (from decoder) with source sequence (from encoder)
+
+:::
+:::
+
+::: {.notes}
+Now we move on to the ***second multi-headed attention layer***.
+
+Here, the ***Query vector*** comes from the masked self-attention layer, and the ***Key and Value*** vectors come from the encoder output.
+
+This mechanism enables the decoder to focus on relevant parts of the input sentence, much like how we naturally pay more attention to specific parts of a text when we translate or summarize it.
+
+It serves to ***align*** the target sequence (from the decoder) with the source sequence (from the encoder).
+:::
+
+## Linear Classifier & Final Softmax {.smaller transition="fade-in"}
+::: columns
+::: {.column width="40%"}
+
+![](static/transformer_output.png)
+:::
+
+::: {.column width="60%"}
+
+![](static/linear_classifier.png)
+
+:::
+:::
+
+::: {.notes}
+The output of the second multi-headed attention layer is fed into a ***linear classifier***, consisting of a single dense layer with a ***softmax activation function***.
+
+It outputs a probability score for each word in the vocabulary.
+
+The word with the highest probability is selected as the predicted output, and is then ***appended*** to the input sequence.
+
+The process repeats until an ***"end"*** token is generated or a max sequence length is reached.
+
+Just like the encoder, the decoder also uses ***residual connections*** and ***layer normalization*** to stabilize the training process.
+
+It can also be ***stacked*** to improve performance, similar to the encoder.\
+The authors of the paper used ***six decoder layers*** in their experiments.
+:::
+
+## Results - Datasets {transition="slide-in fade-out" .smaller}
+
+\
+
+### **WMT 2014 English-to-German (En-De)** {style="font-size: 1.5em"}
+
+- Contains approximately 4.5 million sentence pairs.
+- Performance was evaluated based on the BLEU score, a commonly used metric for assessing the quality of machine-generated translations.
+
+\
+
+### **WMT 2014 English-to-French (En-Fr)** {style="font-size: 1.5em"}
+
+- Larger, with around 36 million sentences.
+- Again, the BLEU score was used for evaluation.
+
+::: {.notes}
+The paper evaluated the Transformer model on machine translation tasks using the WMT 2014 English-to-German and WMT 2014 English-to-French datasets.
+
+- **WMT 2014 English-to-German (En-De)**: This dataset contains approximately 4.5 million sentence pairs. The performance was evaluated based on the BLEU score, a commonly used metric for assessing the quality of machine-generated translations.
+- **WMT 2014 English-to-French (En-Fr)**: This dataset is larger, with around 36 million sentences. Again, the BLEU score was used for evaluation.
+:::
+
+## Results - BLEU Scores {transition="fade" .smaller}
+
+- 3.5 days using 8 P100 GPUs
+
+![](static/results.png){fig-align="center"}
+
+::: {.notes}
+The training took 3.5 days using 8 P100 GPUs.
+
+The Transformer model set ***new state-of-the-art performance levels*** on machine translation tasks.
+
+On the English-to-German translation task, their "big" Transformer model outperformed all previously reported models by more than 2 BLEU points.
+
+The base model also exceeded the performance of all existing models but at a significantly lower training cost.
+
+For the English-to-French translation task, their "big" model scored 41 in BLEU, again surpassing all prior single models while using ***less than a quarter*** of the training resources of the previous best model.
+:::
+
+## Results - Observations {transition="fade-in slide-out"}
+- Much faster training time than previous state-of-the-art models
+- Performance drops with too few or too many attention heads
+- Reducing the attention key size $d_k$ hurts performance
+- Larger models outperform smaller models, and dropout helps prevent overfitting
+
+::: {.notes}
+The authors found that the transformer model was ***much faster*** to train than the previously used state-of-the-art models.
+
+They also experimented with the ***number of attention heads*** and found that both too few and too many heads led to decreased performance.
+
+Reducing the attention key size *d~k~* also hurt the model's quality, suggesting that determining compatibility between keys and queries is a complex task.
+
+Additionally, the results confirmed that larger models generally performed better and that using ***dropout*** helped in preventing ***overfitting***.
+:::
+
+## Conclusion - Strong Points {.smaller}
+- **Simplicity**
+    - Innovative yet simple architecture
+    - No recurrent layers
+    - Relies solely on self-attention mechanisms
+
+\
+
+::: {.fragment}
+- **Performance**
+    - Reduced training time
+    - Parallelizable
+    - Better performance than previous state-of-the-art models
+    - Long-range dependencies
+:::
+
+::: {.notes}
+- **Simplicity:** One of the major strengths of the paper is the innovative yet simple architecture. The Transformer model completely does away with ***recurrent*** layers, and instead relies solely on self-attention mechanisms.
+
+- **Performance:** The Transformer model achieved state-of-the-art results on a number of machine translation tasks. It not only improved performance but also reduced the time needed for training thanks to its ***parallelizable*** architecture. It also demonstrated that self-attention mechanisms can be used to model ***long-range dependencies***, which is a major advantage over recurrent layers.
+:::
+
+## Conclusion - Weak Points {.smaller}
+- **Lack of Real-world Application Examples**
+    - Sole focus on machine translation
+    - May cause reader to assume that the model is only applicable to machine translation tasks
+
+\
+
+::: {.fragment}
+- **Lack of Reflection and Discussion**
+    - Not much insight into certain design choices
+        - Why 6 layers and 8 heads?
+        - Why encode position with sinusoids?
+        - etc...
+    - Makes it difficult to understand the intuition behind
+:::
+
+::: {.notes}
+- **Lack of Real-world Application Examples**: The paper focuses ***solely on machine translation*** results, which could leave the reader questioning the broader applicability of the Transformer model. This might even lead to the assumption that it's not useful for anything other than machine translation.
+
+- **Lack of Reflection and Discussion**: The paper doesn't provide much insight into the reasoning behind certain design choices, such as the number of layers and the number of attention heads. This makes it difficult to understand the ***intuition*** behind these decisions and how they affect the model's performance.
+:::
+
+## Take-home Message {.smaller}
+
+\
+
+*"In a world full of complex models, the 'Attention Is All You Need' paper proves that sometimes, less is more. The Transformer model serves to remind us that the next big breakthrough in machine learning may very well be a return to simplicity."*
+
+::: {.notes}
+*"In a world full of complex models, the 'Attention Is All You Need' paper proves that sometimes, less is more. The Transformer model serves to remind us that the next big breakthrough in machine learning may very well be a return to simplicity."*
+:::
+
+
+## References {.smaller}
